@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE rename_columns_in_schema(p_schema_name TEXT)
+CREATE OR REPLACE PROCEDURE rename_columns_in_schema(p_schema_name VARCHAR(63))
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -8,6 +8,7 @@ DECLARE
     tables_changed TEXT[] := '{}';
     schema_exists BOOLEAN;
     column_exists BOOLEAN;
+    has_privilege BOOLEAN;
 BEGIN
     SELECT EXISTS (
         SELECT 1 FROM information_schema.schemata WHERE schema_name = p_schema_name
@@ -17,6 +18,15 @@ BEGIN
         RAISE INFO 'Схема "%" не существует', p_schema_name;
         RETURN;
     END IF;
+
+    SELECT has_schema_privilege(current_user, p_schema_name, 'CREATE') OR
+       has_schema_privilege(current_user, p_schema_name, 'USAGE')
+    INTO has_privilege;
+
+    IF NOT has_privilege THEN
+        RAISE INFO 'У вас нет прав на схему "%". Попробуйте другую схему.', p_schema_name;
+    END IF;
+
 
     FOR column_record IN
         SELECT table_name, column_name
