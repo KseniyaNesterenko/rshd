@@ -42,3 +42,9 @@ CREATE TABLE test_table4 (
 );
 
 
+INSERT INTO test_table2 ("bad'col", "another""bad", "mix'ed""case")
+VALUES
+    ('test1', 123, '2025-02-24 12:34:56'),
+    ('anr', 44444, '2025-02-24 14:00:00');
+
+
